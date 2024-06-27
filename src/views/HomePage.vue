@@ -1,56 +1,96 @@
 <template>
   <ion-page>
-    <ion-header :translucent="true">
+    <ion-header>
       <ion-toolbar>
-        <ion-title>Blank</ion-title>
+        <ion-title>Device Info</ion-title>
       </ion-toolbar>
     </ion-header>
-
-    <ion-content :fullscreen="true">
-      <ion-header collapse="condense">
-        <ion-toolbar>
-          <ion-title size="large">Blank</ion-title>
-        </ion-toolbar>
-      </ion-header>
-
-      <div id="container">
-        <strong>Ready to create an app?</strong>
-        <p>Start with Ionic <a target="_blank" rel="noopener noreferrer" href="https://ionicframework.com/docs/components">UI Components</a></p>
-      </div>
+    <ion-content>
+      <p>ID: {{ deviceId }}</p>
+      <pre>{{ deviceInfo }}</pre>
+      <pre>{{ batteryInfo }}</pre>
+      <p>Language Code: {{ languageCode }}</p>
     </ion-content>
   </ion-page>
 </template>
+<script lang="ts">
+import { defineComponent, ref, onMounted } from 'vue';
+import { Device } from '@capacitor/device';
 
-<script setup lang="ts">
-import { IonContent, IonHeader, IonPage, IonTitle, IonToolbar } from '@ionic/vue';
+interface DeviceId {
+  uuid: string;
+  // Add other properties as needed based on what Device.getId() returns
+}
+
+export default defineComponent({
+  name: 'DeviceInfoPage',
+  setup() {
+    const deviceId = ref<DeviceId>({
+      uuid: '',
+    });
+
+    const deviceInfo = ref<any>(null); // Adjust type based on actual data structure
+    const batteryInfo = ref<any>(null); // Adjust type based on actual data structure
+    const languageCode = ref<string>('');
+
+    const fetchDeviceId = async () => {
+      try {
+        const id = await Device.getId();
+        deviceId.value = id as DeviceId;
+      } catch (error) {
+        console.error('Error fetching device ID:', error);
+      }
+    };
+
+    const fetchDeviceInfo = async () => {
+      try {
+        const info = await Device.getInfo();
+        deviceInfo.value = info;
+      } catch (error) {
+        console.error('Error fetching device info:', error);
+      }
+    };
+
+    const fetchBatteryInfo = async () => {
+      try {
+        const info = await Device.getBatteryInfo();
+        batteryInfo.value = info;
+      } catch (error) {
+        console.error('Error fetching battery info:', error);
+      }
+    };
+
+    const fetchLanguageCode = async () => {
+      try {
+        const code = await Device.getLanguageCode();
+        languageCode.value = code.value;
+      } catch (error) {
+        console.error('Error fetching language code:', error);
+      }
+    };
+
+    onMounted(async () => {
+      await fetchDeviceId();
+      await fetchDeviceInfo();
+      await fetchBatteryInfo();
+      await fetchLanguageCode();
+    });
+
+    return {
+      deviceId,
+      deviceInfo,
+      batteryInfo,
+      languageCode,
+    };
+  },
+});
 </script>
 
+
+
+
 <style scoped>
-#container {
-  text-align: center;
-  
-  position: absolute;
-  left: 0;
-  right: 0;
-  top: 50%;
-  transform: translateY(-50%);
-}
-
-#container strong {
-  font-size: 20px;
-  line-height: 26px;
-}
-
-#container p {
-  font-size: 16px;
-  line-height: 22px;
-  
-  color: #8c8c8c;
-  
-  margin: 0;
-}
-
-#container a {
-  text-decoration: none;
+ion-content {
+  --padding: 16px;
 }
 </style>
